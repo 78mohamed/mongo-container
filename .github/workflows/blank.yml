@@ -18,7 +18,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Run a one-line script
-        run: echo "Job 2 is executing"
+        run: |
+          docker pull mongo:latest
+          docker run --name my-mongo -d -p 27017:27017 mongo:latest
 
   job3:
     needs: [job1, job2]
@@ -27,4 +29,4 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Run a one-line script
-        run: echo "Job 3 is executing after Job 1 and Job 2"
+        run: docker ps
