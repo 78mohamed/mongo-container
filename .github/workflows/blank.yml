@@ -1,32 +1,28 @@
-name: Parallel and Sequential Jobs
-
+name: Conditional Workflow
+ 
 on:
   workflow_dispatch:
-
+ 
 jobs:
-  job1:
+  check-condition:
+    runs-on: ubuntu-latest
+    outputs:
+      should-skip: ${{ steps.condition-checker.outputs.skip }}
+    steps:
+    - id: condition-checker
+      run: |
+        echo "::set-output name=skip::true"
+ 
+  subsequent-job:
+    needs: check-condition
+    if: needs.check-condition.outputs.should-skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run a one-line script
-        run: echo "Job 1 is executing"
-
-  job2:
+    - run: echo "This job runs if the condition is not met"
+ 
+  another-job:
+    needs: check-condition
+    if: needs.check-condition.outputs.should-skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run a one-line script
-        run: |
-          docker pull mongo:latest
-          docker run --name my-mongo -d -p 27017:27017 mongo:latest
-
-  job3:
-    needs: [job1, job2]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run a one-line script
-        run: docker ps -a
+    - run: echo "This also runs only if the condition is not met"
